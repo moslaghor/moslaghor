@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>মসলা ঘর | খাঁটি ও সস্তা মসলার দোকান</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;600;700&display=swap');
+        *{ font-family:'Hind Siliguri',sans-serif; }
+        body{ background:#fffdf7; }
+        .product-card{ background:white; border-radius:16px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.08); transition:.3s; border:1px solid #fde68a; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-card:hover{ transform:translateY(-5px); }
+        .badge-cart{ position:absolute; top:-6px; right:-6px; background:red; color:white; border-radius:999px; font-size:11px; padding:2px 7px; }
+        .modal-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999; justify-content:center; align-items:center; }
+        .modal-overlay.active{ display:flex; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Payment Styles */
+        .payment-btn { border: 2px solid #eee; transition: 0.3s; cursor: pointer; }
+        .payment-btn.active { border-color: #f59e0b; background-color: #fffbeb; }
+    </style>
+</head>
+
+<body>
+<input type="email" name="email" placeholder="আপনার ইমেইল অ্যাড্রেস" required>
+<header class="sticky top-0 bg-white shadow z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-mortar-pestle text-amber-700 text-2xl"></i>
+            <h1 class="text-2xl font-bold text-amber-700">মসলা ঘর</h1>
+        </div>
+        <button onclick="openCartModal()" class="relative">
+            <i class="fas fa-shopping-cart text-2xl text-amber-700"></i>
+            <span id="cart-count" class="badge-cart">0</span>
+        </button>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-8">
+    <h3 class="text-2xl font-bold mb-6">📦 আমাদের পণ্য সমূহ</h3>
+    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5"></div>
+</main>
+
+<div id="cartModal" class="modal-overlay">
+    <div class="bg-white rounded-2xl w-full max-w-lg p-5 mx-3 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-amber-700">আপনার অর্ডার</h2>
+            <button onclick="closeCartModal()" class="text-2xl">&times;</button>
+        </div>
+        <div id="cart-items-list" class="space-y-3 mb-5"></div>
+        <div class="border-t pt-3 flex justify-between text-xl font-bold">
+            <span>সর্বমোট:</span>
+            <span><span id="cart-total">0</span> ৳</span>
+        </div>
+<form name="order" method="POST" data-netlify="true">
+  <input type="text" name="name" placeholder="তোমার নাম" required>
+  <input type="tel" name="phone" placeholder="মোবাইল নাম্বার" required>
+  <input type="text" name="address" placeholder="ঠিকানা" required>
+  <textarea name="products" placeholder="কোন মসলা কত কেজি চাও" required></textarea>
+  <button type="submit">অর্ডার করুন</button>
+</form>
+        <form id="orderForm" class="space-y-3 mt-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input type="text" name="user_name" placeholder="আপনার নাম" required class="w-full border rounded-xl p-3 outline-amber-500">
+                <input type="tel" name="user_phone" placeholder="মোবাইল নম্বর" required class="w-full border rounded-xl p-3 outline-amber-500">
+            </div>
+            <input type="email" name="user_email" placeholder="ইমেইল" required class="w-full border rounded-xl p-3 outline-amber-500">
+            <textarea name="user_address" placeholder="পুরো ঠিকানা (রোড, বাড়ি, এলাকা)" required rows="2" class="w-full border rounded-xl p-3 outline-amber-500"></textarea>
+
+            <div class="mt-4">
+                <p class="font-bold text-gray-700 mb-2">পেমেন্ট মেথড সিলেক্ট করুন:</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div onclick="selectPayment('bkash')" id="btn-bkash" class="payment-btn flex items-center justify-center p-3 rounded-xl gap-2">
+                        <img src="https://logos-download.com/wp-content/uploads/2022/01/BKash_Logo.png" class="w-8 h-8 object-contain">
+                        <span class="font-bold text-sm">বিকাশ</span>
+                    </div>
+                    <div onclick="selectPayment('nagad')" id="btn-nagad" class="payment-btn flex items-center justify-center p-3 rounded-xl gap-2">
+                        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/8/8b/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png" class="w-8 h-8 object-contain">
+                        <span class="font-bold text-sm">নগদ</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="trx-area" class="hidden animate-pulse">
+                <div class="bg-amber-50 p-4 rounded-xl border border-dashed border-amber-400">
+                    <p class="text-xs text-amber-800 mb-2 font-bold" id="payment-instruction"></p>
+                    <input type="text" name="trx_id" id="trx_id" placeholder="ট্রানজেকশন ID (TrxID) দিন" class="w-full border rounded-lg p-2 outline-amber-600 font-mono text-sm">
+                </div>
+            </div>
+
+            <input type="hidden" name="selected_method" id="selected_method_val">
+
+            <button id="submitBtn" type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition shadow-lg mt-4">অর্ডার নিশ্চিত করুন</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    emailjs.init({ publicKey: "Vtbeo9wq3hjL2tuOF" });
+
+    const products = [
+        {id:1, name:"প্রিমিয়াম ঘি", price:220}, {id:2, name:"সুন্দরবনের মধু", price:350},
+        {id:3, name:"কাজু বাদাম", price:380}, {id:4, name:"কাঠ বাদাম", price:520},
+        {id:5, name:"এলাচ", price:450}, {id:6, name:"দারুচিনি", price:170},
+        {id:7, name:"লবঙ্গ", price:260}, {id:8, name:"গোলমরিচ", price:290},
+        {id:9, name:"হলুদ গুঁড়া", price:125}, {id:10, name:"মরিচ গুঁড়া", price:135},
+        {id:11, name:"জিরা গুঁড়া", price:150}, {id:12, name:"ধনিয়া গুঁড়া", price:110},
+        {id:13, name:"কালোজিরা", price:90}, {id:14, name:"মেথি", price:70},
+        {id:15, name:"সরষের তেল", price:240}, {id:16, name:"জায়ফল", price:300},
+        {id:17, name:"জয়ত্রী", price:400}, {id:18, name:"সাদা তিল", price:120},
+        {id:19, name:"চিনাবাদাম", price:85}, {id:20, name:"আখরোট", price:650},
+        {id:21, name:"পেস্তা বাদাম", price:900}, {id:22, name:"কিশমিশ", price:210},
+        {id:23, name:"তেজপাতা", price:50}, {id:24, name:"শুকনা মরিচ", price:140},
+        {id:25, name:"কাবাব চিনি", price:350}, {id:26, name:"রাধুনি মসলা", price:180},
+        {id:27, name:"গরম মসলা", price:250}, {id:28, name:"বিরিয়ানি মসলা", price:160},
+        {id:29, name:"চরম মসলা", price:200}, {id:30, name:"হিং", price:450},
+        {id:31, name:"বিট লবণ", price:40}, {id:32, name:"শাহি জিরা", price:320},
+        {id:33, name:"পোস্ত দানা", price:1200}, {id:34, name:"আদা গুঁড়া", price:190},
+        {id:35, name:"রসুন গুঁড়া", price:180}, {id:36, name:"পেঁয়াজ গুঁড়া", price:210},
+        {id:37, name:"আমচুর পাউডার", price:280}, {id:38, name:"ড্রাই ফ্রুটস", price:750},
+        {id:39, name:"আলুবোখারা", price:340}, {id:40, name:"মৌরি", price:110},
+        {id:41, name:"যষ্টিমধু", price:220}, {id:42, name:"চিরতা", price:150},
+        {id:43, name:"ত্রিফলা চূর্ণ", price:180}, {id:44, name:"ইসবগুলের ভুসি", price:450},
+        {id:45, name:"তোকমা দানা", price:130}, {id:46, name:"খেজুর", price:550},
+        {id:47, name:"শুকনো আদা", price:260}
+    ];
+
+    let cart = [];
+    let selectedPaymentMethod = '';
+
+    function renderProducts() {
+        const grid = document.getElementById('product-grid');
+        grid.innerHTML = products.map(p => {
+            const isInCart = cart.find(item => item.id === p.id);
+            return `
+                <div class="product-card p-4">
+                    <div>
+                        <div class="bg-amber-100 h-24 rounded-lg flex items-center justify-center mb-3">
+                            <i class="fas fa-box-open text-3xl text-amber-600"></i>
+                        </div>
+                        <h4 class="font-bold text-sm h-10 overflow-hidden">${p.name}</h4>
+                        <p class="text-amber-700 font-bold text-lg mt-1">${p.price} ৳</p>
+                    </div>
+                    <div class="mt-3">
+                        ${isInCart 
+                            ? `<button disabled class="w-full bg-gray-400 text-white py-2 rounded-lg text-sm">Added to cart</button>`
+                            : `
+                                <div class="flex items-center justify-between mb-2 bg-gray-100 rounded-lg p-1">
+                                    <button onclick="updateQtyBtn(${p.id}, -1)" class="w-8 h-8 bg-white rounded-md shadow-sm text-amber-700 font-bold">-</button>
+                                    <input type="number" id="qty-${p.id}" value="1" min="1" max="15" readonly class="w-10 text-center bg-transparent font-bold">
+                                    <button onclick="updateQtyBtn(${p.id}, 1)" class="w-8 h-8 bg-white rounded-md shadow-sm text-amber-700 font-bold">+</button>
+                                </div>
+                                <button onclick="addToCart(${p.id})" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg text-sm transition font-bold">Add to cart</button>
+                              `
+                        }
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function selectPayment(method) {
+        selectedPaymentMethod = method;
+        document.getElementById('selected_method_val').value = method;
+        document.getElementById('btn-bkash').classList.remove('active');
+        document.getElementById('btn-nagad').classList.remove('active');
+        document.getElementById('trx-area').classList.remove('hidden');
+        
+        const instruction = document.getElementById('payment-instruction');
+        const personalNum = "01XXXXXXXXX"; // এখানে আপনার বিকাশ/নগদ নম্বর দিন
+
+        if(method === 'bkash') {
+            document.getElementById('btn-bkash').classList.add('active');
+            instruction.innerText = `বিকাশ পার্সোনাল নম্বরে (${personalNum}) টাকা সেন্ড মানি করে TrxID দিন।`;
+        } else {
+            document.getElementById('btn-nagad').classList.add('active');
+            instruction.innerText = `নগদ পার্সোনাল নম্বরে (${personalNum}) টাকা সেন্ড মানি করে TrxID দিন।`;
+        }
+    }
+
+    function updateQtyBtn(id, change) {
+        const input = document.getElementById(`qty-${id}`);
+        let currentQty = parseInt(input.value);
+        let newQty = currentQty + change;
+        if (newQty >= 1 && newQty <= 15) {
+            input.value = newQty;
+        }
+    }
+
+    function addToCart(id) {
+        const product = products.find(p => p.id === id);
+        const qty = parseInt(document.getElementById(`qty-${id}`).value);
+        if (!cart.find(i => i.id === id)) {
+            cart.push({...product, quantity: qty});
+        }
+        updateCartUI();
+        renderProducts();
+    }
+
+    function updateCartUI() {
+        const list = document.getElementById('cart-items-list');
+        const count = document.getElementById('cart-count');
+        const total = document.getElementById('cart-total');
+
+        if (cart.length === 0) {
+            list.innerHTML = '<p class="text-center text-gray-400 py-4">কার্ট খালি</p>';
+            count.innerText = '0';
+            total.innerText = '0';
+            return;
+        }
+
+        let subtotal = 0;
+        list.innerHTML = cart.map(item => {
+            subtotal += item.price * item.quantity;
+            return `
+                <div class="flex justify-between items-center bg-amber-50 p-3 rounded-xl border border-amber-100">
+                    <div class="flex-1">
+                        <p class="font-semibold text-sm">${item.name}</p>
+                        <p class="text-xs text-gray-500">${item.quantity} x ${item.price}৳</p>
+                    </div>
+                    <div class="font-bold text-amber-700 text-sm">${item.price * item.quantity} ৳</div>
+                    <button onclick="removeItem(${item.id})" class="ml-3 text-red-500 hover:scale-110 transition"><i class="fas fa-trash-can"></i></button>
+                </div>
+            `;
+        }).join('');
+
+        count.innerText = cart.reduce((s, i) => s + i.quantity, 0);
+        total.innerText = subtotal;
+    }
+
+    function removeItem(id) {
+        cart = cart.filter(i => i.id !== id);
+        updateCartUI();
+        renderProducts();
+    }
+
+    function openCartModal() {
+        if(cart.length === 0) return alert("আপনার কার্ট খালি!");
+        document.getElementById('cartModal').classList.add('active');
+    }
+
+    function closeCartModal() {
+        document.getElementById('cartModal').classList.remove('active');
+    }
+
+    document.getElementById('orderForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if(!selectedPaymentMethod) {
+            alert("দয়া করে পেমেন্ট মেথড সিলেক্ট করুন!");
+            return;
+        }
+        
+        const trxInput = document.getElementById('trx_id').value.trim();
+        if(!trxInput) {
+            alert("দয়া করে ট্রানজেকশন ID দিন!");
+            return;
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>অর্ডার পাঠানো হচ্ছে...';
+
+        const orderDetails = cart.map(i => 
+            `${i.name}: ${i.quantity} x ${i.price}৳ = ${i.quantity * i.price}৳`
+        ).join('\n');
+
+        const params = {
+            user_name: this.user_name.value,
+            user_phone: this.user_phone.value,
+            user_email: this.user_email.value,
+            to_email: this.user_email.value,
+            user_address: this.user_address.value,
+            payment_method: selectedPaymentMethod.toUpperCase(),
+            trx_id: trxInput,
+            order_details: orderDetails,
+            total_amount: document.getElementById('cart-total').innerText + ' ৳',
+            order_id: 'MS' + Date.now()
+        };
+
+        emailjs.send('service_rncn1de', 'template_4m5chgj', params)
+        .then(() => {
+            alert(`✅ অর্ডার সফল হয়েছে! আপনার TrxID: ${trxInput}`);
+            cart = [];
+            selectedPaymentMethod = '';
+            document.getElementById('trx-area').classList.add('hidden');
+            updateCartUI();
+            renderProducts();
+            closeCartModal();
+            this.reset();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("❌ সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = 'অর্ডার নিশ্চিত করুন';
+        });
+    });
+
+    renderProducts();
+    updateCartUI();
+</script>
+
+</body>
+</html>
